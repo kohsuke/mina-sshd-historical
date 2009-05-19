@@ -80,6 +80,10 @@
             <name>SSHD Repository</name>
             <url>http://sshd.googlecode.com/svn/m2-repo</url>
         </repository>
+        <repository>
+            <id>don-asf-repository</id>
+            <url>http://people.apache.org/~mrdon/repository/</url>
+        </repository>
     </repositories>
 
     <developers>
@@ -90,11 +94,13 @@
       </developer>
     </developers>
 
+    <!--
     <scm>
         <connection>scm:svn:http://svn.apache.org/repos/asf/mina/sshd/trunk</connection>
         <developerConnection>scm:svn:https://svn.apache.org/repos/asf/mina/sshd/trunk</developerConnection>
         <url>http://svn.apache.org/repos/asf/mina/sshd/trunk</url>
     </scm>
+    -->
 
     <dependencyManagement>
         <dependencies>
@@ -162,9 +168,28 @@
                     <target>1.5</target>
                 </configuration>
             </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-release-plugin</artifactId>
+                <dependencies>
+                    <dependency>
+                        <groupId>org.apache.maven.scm</groupId>
+                        <artifactId>maven-scm-provider-gitexe</artifactId>
+                        <version>1.1-db-1</version>
+                    </dependency>
+                </dependencies>
+            </plugin>
         </plugins>
+        <extensions>
+            <extension>
+                <groupId>org.jvnet.wagon-svn</groupId>
+                <artifactId>wagon-svn</artifactId>
+                <version>1.9</version>
+            </extension>
+        </extensions>
     </build>
 
+    <!--
     <distributionManagement>
       <repository>
         <id>dummy</id>
@@ -172,10 +197,21 @@
         <url/>
       </repository>
     </distributionManagement>
+    -->
 
     <modules>
       <module>sshd-core</module>
-      <module>sshd-pam</module>
+      <!--module>sshd-pam</module-->
     </modules>
-    
+
+    <!-- to deploy to java.net m2 repo and track this in GitHub -->
+    <scm>
+        <connection>scm:git:git://github.com/kohsuke/mina-sshd.git</connection>
+    </scm>
+    <distributionManagement>
+        <repository>
+            <id>java.net-m2-repository</id>
+            <url>java-net:/maven2-repository/trunk/repository/</url>
+        </repository>
+    </distributionManagement>
 </project>

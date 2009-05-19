@@ -120,13 +120,4 @@
             </plugin>
             </plugins>
     </build>
-
-    <distributionManagement>
-      <repository>
-        <id>dummy</id>
-        <name>Dummy to avoid accidental deploys</name>
-        <url/>
-      </repository>
-    </distributionManagement>
-
 </project>
