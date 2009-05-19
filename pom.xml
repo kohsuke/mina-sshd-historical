@@ -207,6 +207,7 @@
     <!-- to deploy to java.net m2 repo and track this in GitHub -->
     <scm>
         <connection>scm:git:git://github.com/kohsuke/mina-sshd.git</connection>
+        <developerConnection>scm:git:git://github.com/kohsuke/mina-sshd.git</developerConnection>
     </scm>
     <distributionManagement>
         <repository>
