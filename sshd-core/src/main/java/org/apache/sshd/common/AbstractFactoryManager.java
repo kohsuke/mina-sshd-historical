@@ -23,6 +23,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
+import java.util.Arrays;
 
 import org.slf4j.LoggerFactory;
 import org.slf4j.Logger;
@@ -64,6 +65,10 @@ public abstract class AbstractFactoryManager implements FactoryManager {
 
     public void setCipherFactories(List<NamedFactory<Cipher>> cipherFactories) {
         this.cipherFactories = cipherFactories;
+    }
+
+    public void setCipherFactories(NamedFactory<Cipher>... cipherFactories) {
+        setCipherFactories(Arrays.asList(cipherFactories));
     }
 
     public List<NamedFactory<Compression>> getCompressionFactories() {

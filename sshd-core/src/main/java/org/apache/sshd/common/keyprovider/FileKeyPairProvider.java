@@ -48,7 +48,7 @@ public class FileKeyPairProvider extends AbstractKeyPairProvider {
     public FileKeyPairProvider() {
     }
 
-    public FileKeyPairProvider(String[] files) {
+    public FileKeyPairProvider(String... files) {
         this.files = files;
     }
 
