@@ -20,11 +20,18 @@ package org.apache.sshd;
 
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.OutputStreamWriter;
+import java.io.Writer;
 import java.net.InetSocketAddress;
 import java.net.SocketAddress;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.LinkedList;
+import java.util.Iterator;
+import java.security.InvalidKeyException;
 
 import org.apache.mina.core.future.IoFutureListener;
 import org.apache.mina.core.service.IoConnector;
@@ -189,12 +196,7 @@ public class SshClient extends AbstractFactoryManager {
                     new DHG1.Factory()));
             client.setRandomFactory(new SingletonRandomFactory(new JceRandom.Factory()));
         }
-        client.setCipherFactories(Arrays.<NamedFactory<Cipher>>asList(
-                new AES128CBC.Factory(),
-                new TripleDESCBC.Factory(),
-                new BlowfishCBC.Factory(),
-                new AES192CBC.Factory(),
-                new AES256CBC.Factory()));
+        setUpDefaultCiphers(client);
         // Compression is not enabled by default
         // client.setCompressionFactories(Arrays.<NamedFactory<Compression>>asList(
         //         new CompressionNone.Factory(),
@@ -213,6 +215,30 @@ public class SshClient extends AbstractFactoryManager {
         return client;
     }
 
+    private static void setUpDefaultCiphers(SshClient client) {
+        List<NamedFactory<Cipher>> avail = new LinkedList<NamedFactory<Cipher>>();
+        avail.add(new AES128CBC.Factory());
+        avail.add(new TripleDESCBC.Factory());
+        avail.add(new BlowfishCBC.Factory());
+        avail.add(new AES192CBC.Factory());
+        avail.add(new AES256CBC.Factory());
+
+        for (Iterator<NamedFactory<Cipher>> i = avail.iterator(); i.hasNext();) {
+            final NamedFactory<Cipher> f = i.next();
+            try {
+                final Cipher c = f.create();
+                final byte[] key = new byte[c.getBlockSize()];
+                final byte[] iv = new byte[c.getIVSize()];
+                c.init(Cipher.Mode.Encrypt, key, iv);
+            } catch (InvalidKeyException e) {
+                i.remove();
+            } catch (Exception e) {
+                i.remove();
+            }
+        }
+        client.setCipherFactories(avail);
+    }
+
     /*=================================
           Main class implementation
      *=================================*/
@@ -226,27 +252,27 @@ public class SshClient extends AbstractFactoryManager {
         boolean error = false;
 
         for (int i = 0; i < args.length; i++) {
-            if ("-p".equals(args[i])) {
+            if (command == null && "-p".equals(args[i])) {
                 if (i + 1 >= args.length) {
                     System.err.println("option requires an argument: " + args[i]);
                     error = true;
                     break;
                 }
                 port = Integer.parseInt(args[++i]);
-            } else if ("-l".equals(args[i])) {
+            } else if (command == null && "-l".equals(args[i])) {
                 if (i + 1 >= args.length) {
                     System.err.println("option requires an argument: " + args[i]);
                     error = true;
                     break;
                 }
                 login = args[++i];
-            } else if ("-v".equals(args[i])) {
+            } else if (command == null && "-v".equals(args[i])) {
                 logLevel = 1;
-            } else if ("-vv".equals(args[i])) {
+            } else if (command == null && "-vv".equals(args[i])) {
                 logLevel = 2;
-            } else if ("-vvv".equals(args[i])) {
+            } else if (command == null && "-vvv".equals(args[i])) {
                 logLevel = 3;
-            } else if (args[i].startsWith("-")) {
+            } else if (command == null && args[i].startsWith("-")) {
                 System.err.println("illegal option: " + args[i]);
                 error = true;
                 break;
@@ -289,8 +315,21 @@ public class SshClient extends AbstractFactoryManager {
                 System.err.println("error");
                 System.exit(-1);
             }
-            ClientChannel channel = session.createChannel(ClientChannel.CHANNEL_SHELL);
-            channel.setIn(new NoCloseInputStream(System.in));
+            ClientChannel channel;
+            if (command == null) {
+                channel = session.createChannel(ClientChannel.CHANNEL_SHELL);
+                channel.setIn(new NoCloseInputStream(System.in));
+            } else {
+                channel = session.createChannel(ClientChannel.CHANNEL_EXEC);
+                ByteArrayOutputStream baos = new ByteArrayOutputStream();
+                Writer w = new OutputStreamWriter(baos);
+                for (String cmd : command) {
+                    w.append(cmd).append(" ");
+                }
+                w.append("\n");
+                w.close();
+                channel.setIn(new ByteArrayInputStream(baos.toByteArray()));
+            }
             channel.setOut(new NoCloseOutputStream(System.out));
             channel.setErr(new NoCloseOutputStream(System.err));
             channel.open().await();
