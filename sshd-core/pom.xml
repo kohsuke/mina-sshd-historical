@@ -24,7 +24,7 @@
     <parent>
         <groupId>org.jvnet.hudson</groupId>
         <artifactId>sshd</artifactId>
-        <version>1.0-hudson-2-SNAPSHOT</version>
+        <version>1.0-hudson-2</version>
     </parent>
 
     <artifactId>sshd-core</artifactId>
