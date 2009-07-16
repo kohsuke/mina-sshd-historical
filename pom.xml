@@ -29,7 +29,7 @@
 
     <groupId>org.jvnet.hudson</groupId>
     <artifactId>sshd</artifactId>
-    <version>1.0-hudson-2</version>
+    <version>1.0-hudson-3-SNAPSHOT</version>
     <name>Apache Mina SSHD</name>
     <packaging>pom</packaging>
     <inceptionYear>2008</inceptionYear>
